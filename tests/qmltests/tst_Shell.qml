@@ -3246,5 +3246,33 @@ Rectangle {
             tryCompare(priv, "currentItem", menuItem0);
             tryCompare(priv.currentItem, "popupVisible", true);
         }
+
+        // Regression test for https://github.com/ubports/ubuntu-touch/issues/1337
+        // Currently this can't detect the regression due to synchronous
+        // mock SurfaceManager preventing the bug to surface.
+        function test_openIndicatorWhileDrawerOpened()
+        {
+            loadShell("phone", 1 /* apps */);
+            swipeAwayGreeter();
+
+            var launcher = testCase.findChild(shell, "launcher");
+            console.log("toggleDrawer");
+            launcher.toggleDrawer();
+
+            // Wait a bit for the drawer to open. Otherwise the test fails.
+            wait(50 /* ms */);
+
+            // Opens the indicator panel by touching.
+            console.log("Openning indicators");
+            var touchX = shell.width / 2;
+            var indicators = findChild(shell, "indicators");
+            touchFlick(indicators,
+                    touchX /* fromX */, indicators.minimizedPanelHeight * 0.5 /* fromY */,
+                    touchX /* toX */, shell.height * 0.9 /* toY */,
+                    true /* beginTouch */, true /* endTouch */);
+
+            // The indicator panel should stay open.
+            verify(!indicators.fullyClosed);
+        }
     }
 }
